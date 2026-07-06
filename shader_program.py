@@ -25,6 +25,9 @@ class ShaderProgram:
         # Load and compile the shadow map shader program
         self.programs['shadow_map'] = self.get_program('shadow_map')
 
+        # Load and compile the post-processing shader
+        self.programs['post_processing'] = self.get_program('post_processing')
+
     def get_program(self, shader_program_name):
         """
         Load and compile a shader program from .vert and .frag files.

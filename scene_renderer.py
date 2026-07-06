@@ -25,6 +25,16 @@ class SceneRenderer:
         self.depth_texture = self.mesh.texture.textures['depth_texture']
         self.depth_fbo = self.ctx.framebuffer(depth_attachment=self.depth_texture)
 
+        # Create the main scene framebuffer for post-processing
+        self.scene_texture = self.mesh.texture.textures['scene_texture']
+        self.scene_fbo = self.ctx.framebuffer(
+            color_attachments=[self.scene_texture],
+            depth_attachment=self.ctx.depth_renderbuffer(self.app.WIN_SIZE)
+        )
+
+        # Get the VAO for post-processing
+        self.post_processing_vao = self.app.mesh.vao.vaos['post_processing']
+
     def render_shadow(self):
         """
         Render the scene from the light's point of view to populate the shadow map.
@@ -44,7 +54,10 @@ class SceneRenderer:
 
         Includes textured and lit objects, as well as the skybox.
         """
-        self.app.ctx.screen.use()  # Bind the default screen framebuffer
+        self.scene_fbo.clear() # Clear the scene framebuffer
+        self.scene_fbo.use() # Bind the scene framebuffer
+
+        # self.app.ctx.screen.use()  # Bind the default screen framebuffer
 
         # Render each object in the scene using lighting and shadows
         for obj in self.scene.objects:
@@ -52,6 +65,17 @@ class SceneRenderer:
 
         # Render the skybox last to ensure it's in the background
         self.scene.skybox.render()
+
+    def post_processing(self):
+        """
+        Apply post-processing effects by rendering the scene texture to the screen.
+        """
+        self.app.ctx.screen.use() # Bind the default screen framebuffer
+
+        # Bind the scene texture from the main render pass
+        self.scene_texture.use(location=0)
+        # Render the full-screen quad
+        self.post_processing_vao.render()
 
     def render(self):
         """
@@ -65,9 +89,11 @@ class SceneRenderer:
         self.scene.update()      # Update scene logic and transformations
         self.render_shadow()     # Pass 1: depth map for shadows
         self.main_render()       # Pass 2: main render with lighting and shadows
+        self.post_processing()   # Pass 3: render scene texture to screen
 
     def destroy(self):
         """
         Clean up and release GPU resources when the renderer is destroyed.
         """
         self.depth_fbo.release()  # Free the depth framebuffer
+        self.scene_fbo.release() # Free the scene framebuffer

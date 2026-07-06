@@ -33,6 +33,9 @@ class Texture:
         # Create a depth texture used for shadow mapping
         self.textures['depth_texture'] = self.get_depth_texture()
 
+        # Create a color texture for the main scene framebuffer (for post-processing)
+        self.textures['scene_texture'] = self.get_scene_texture()
+
     def get_depth_texture(self):
         """
         Create a depth texture for shadow mapping.
@@ -47,6 +50,17 @@ class Texture:
         depth_texture.repeat_y = False
 
         return depth_texture
+
+    def get_scene_texture(self):
+        """
+        Create a color texture to render the main scene to.
+
+        Returns:
+            A 2D texture object.
+        """
+        texture = self.ctx.texture(self.app.WIN_SIZE, 4) # RGBA
+        texture.filter = (mgl.LINEAR, mgl.LINEAR)
+        return texture
 
     def get_texture_cube(self, dir_path, ext='png'):
         """

@@ -61,6 +61,12 @@ class VAO:
             vbo=self.vbo.vbos['advanced_skybox']
         )
 
+        # Create VAO for post-processing using a full-screen triangle
+        self.vaos['post_processing'] = self.get_vao(
+            program=self.program.programs['post_processing'],
+            vbo=self.vbo.vbos['advanced_skybox'] # Reuse the fullscreen triangle VBO
+        )
+
     def get_vao(self, program, vbo):
         """
         Create a VAO using the given shader program and VBO.
