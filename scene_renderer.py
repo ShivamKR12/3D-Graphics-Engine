@@ -41,7 +41,7 @@ class SceneRenderer:
 
         # Get VAO and programs for post-processing
         self.post_processing_vao = self.app.mesh.vao.vaos['post_processing']
-        self.pp_program = self.app.mesh.vao.program.programs['post_processing']
+        self.post_processing_program = self.app.mesh.vao.program.programs['post_processing']
         self.brights_program = self.app.mesh.vao.program.programs['bloom_brights']
         self.blur_program = self.app.mesh.vao.program.programs['bloom_blur']
 
@@ -117,8 +117,10 @@ class SceneRenderer:
         else:
             self.bloom_texture_2.use(location=1)
 
-        self.pp_program['u_scene_texture'] = 0
-        self.pp_program['u_bloom_texture'] = 1
+        self.post_processing_program['u_scene_texture'] = 0
+        self.post_processing_program['u_bloom_texture'] = 1
+        self.post_processing_program['u_use_bloom'] = False # Set to False to disable bloom and tonemapping
+        self.post_processing_program['u_exposure'] = 1.0 # Adjust for final brightness. Higher = brighter.
         self.post_processing_vao.render()
 
     def render(self):
