@@ -36,6 +36,10 @@ class Texture:
         # Create a color texture for the main scene framebuffer (for post-processing)
         self.textures['scene_texture'] = self.get_scene_texture()
 
+        # Create textures for the bloom effect (at half resolution)
+        self.textures['bloom_texture_1'] = self.get_scene_texture(scale_factor=0.5)
+        self.textures['bloom_texture_2'] = self.get_scene_texture(scale_factor=0.5)
+
     def get_depth_texture(self):
         """
         Create a depth texture for shadow mapping.
@@ -51,14 +55,18 @@ class Texture:
 
         return depth_texture
 
-    def get_scene_texture(self):
+    def get_scene_texture(self, scale_factor=1.0):
         """
         Create a color texture to render the main scene to.
+
+        Args:
+            scale_factor (float): Factor to scale the texture size relative to the window.
 
         Returns:
             A 2D texture object.
         """
-        texture = self.ctx.texture(self.app.WIN_SIZE, 4) # RGBA
+        size = (int(self.app.WIN_SIZE[0] * scale_factor), int(self.app.WIN_SIZE[1] * scale_factor))
+        texture = self.ctx.texture(size, 4, dtype='f2') # Use 16-bit float (2 bytes) for HDR
         texture.filter = (mgl.LINEAR, mgl.LINEAR)
         return texture
 

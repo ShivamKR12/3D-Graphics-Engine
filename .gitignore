@@ -131,3 +131,7 @@ dmypy.json
 # video and subtitle files
 *.mp4
 *.srt
+
+# Don't include this as well !
+diff.txt
+temp.txt

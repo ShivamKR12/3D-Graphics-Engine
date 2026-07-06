@@ -32,8 +32,21 @@ class SceneRenderer:
             depth_attachment=self.ctx.depth_renderbuffer(self.app.WIN_SIZE)
         )
 
-        # Get the VAO for post-processing
+        # --- Bloom Setup ---
+        self.bloom_texture_1 = self.mesh.texture.textures['bloom_texture_1']
+        self.bloom_texture_2 = self.mesh.texture.textures['bloom_texture_2']
+
+        self.bloom_fbo_1 = self.ctx.framebuffer(color_attachments=[self.bloom_texture_1])
+        self.bloom_fbo_2 = self.ctx.framebuffer(color_attachments=[self.bloom_texture_2])
+
+        # Get VAO and programs for post-processing
         self.post_processing_vao = self.app.mesh.vao.vaos['post_processing']
+        self.pp_program = self.app.mesh.vao.program.programs['post_processing']
+        self.brights_program = self.app.mesh.vao.program.programs['bloom_brights']
+        self.blur_program = self.app.mesh.vao.program.programs['bloom_blur']
+
+        # Number of blur passes. More passes = softer glow.
+        self.blur_passes = 10
 
     def render_shadow(self):
         """
@@ -70,11 +83,42 @@ class SceneRenderer:
         """
         Apply post-processing effects by rendering the scene texture to the screen.
         """
+        # --- Pass 1: Extract bright areas ---
+        self.bloom_fbo_1.use()
+        self.scene_texture.use(location=0)
+        self.brights_program['u_scene_texture'] = 0
+        self.brights_program['u_threshold'] = 100.0  # Set high to disable bloom for testing
+        self.post_processing_vao.render()
+
+        # --- Pass 2: Blur the bright areas (ping-pong) ---
+        is_horizontal = True
+        for i in range(self.blur_passes):
+            # Alternate between FBOs
+            if is_horizontal:
+                self.bloom_fbo_2.use()
+                self.bloom_texture_1.use(location=0)
+            else:
+                self.bloom_fbo_1.use()
+                self.bloom_texture_2.use(location=0)
+
+            self.blur_program['u_source_texture'] = 0
+            self.blur_program['u_horizontal'] = is_horizontal
+            self.post_processing_vao.render()
+            is_horizontal = not is_horizontal
+
+        # --- Pass 3: Composite scene and bloom ---
         self.app.ctx.screen.use() # Bind the default screen framebuffer
 
-        # Bind the scene texture from the main render pass
+        # Bind the original scene texture and the final blurred bloom texture
         self.scene_texture.use(location=0)
-        # Render the full-screen quad
+        # The final blurred result is in bloom_texture_1 if blur_passes is even, else bloom_texture_2
+        if self.blur_passes % 2 == 0:
+            self.bloom_texture_1.use(location=1)
+        else:
+            self.bloom_texture_2.use(location=1)
+
+        self.pp_program['u_scene_texture'] = 0
+        self.pp_program['u_bloom_texture'] = 1
         self.post_processing_vao.render()
 
     def render(self):
@@ -96,4 +140,6 @@ class SceneRenderer:
         Clean up and release GPU resources when the renderer is destroyed.
         """
         self.depth_fbo.release()  # Free the depth framebuffer
-        self.scene_fbo.release() # Free the scene framebuffer
+        self.scene_fbo.release()  # Free the scene framebuffer
+        self.bloom_fbo_1.release()
+        self.bloom_fbo_2.release()

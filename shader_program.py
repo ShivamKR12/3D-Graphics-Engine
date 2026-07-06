@@ -28,6 +28,21 @@ class ShaderProgram:
         # Load and compile the post-processing shader
         self.programs['post_processing'] = self.get_program('post_processing')
 
+        # Load bloom shaders manually
+        # These are fragment-only effects that can reuse the post_processing vertex shader.
+        with open('shaders/post_processing.vert') as file:
+            post_processing_vert = file.read()
+
+        with open('shaders/bloom_brights.frag') as file:
+            bloom_brights_frag = file.read()
+
+        with open('shaders/bloom_blur.frag') as file:
+            bloom_blur_frag = file.read()
+
+        # Compile programs by pairing the common vertex shader with specific fragment shaders
+        self.programs['bloom_brights'] = self.ctx.program(vertex_shader=post_processing_vert, fragment_shader=bloom_brights_frag)
+        self.programs['bloom_blur'] = self.ctx.program(vertex_shader=post_processing_vert, fragment_shader=bloom_blur_frag)
+        
     def get_program(self, shader_program_name):
         """
         Load and compile a shader program from .vert and .frag files.
