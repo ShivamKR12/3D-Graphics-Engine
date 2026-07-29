@@ -2,7 +2,7 @@
 
 A 3D graphics engine built from scratch in Python using ModernGL (a modern OpenGL wrapper) and Pygame for windowing and input handling. This project demonstrates several fundamental computer graphics techniques in a clear and well-structured application.
 
-![opengl](/screenshot/0.jpg)
+![screenshot](/screenshot/0.jpg)
 
 ## Features
 
@@ -20,7 +20,7 @@ To get a local copy up and running, follow these simple steps.
 
 ### Prerequisites
 
-*   Python 3.7+
+*   Python 3.8+
 *   pip
 
 ### Installation
@@ -50,4 +50,4 @@ python main.py
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.
